@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <script type="text/javascript">
+        var onloadCallback = function() {
+            grecaptcha.render('recaptchaEle', {
+                'sitekey' : '6LeuBPkSAAAAAJKaNezSYDM3ZL4-jfSJu9cWpp_-'
+            });
+        };
+    </script>
+</head>
+<body>
+<form action="http://homu.komica.org/00/index.php" method="POST" enctype="multipart/form-data">
+
+    <input type="hidden" name="mode" value="regist">
+    <input type="hidden" name="MAX_FILE_SIZE" value="1048576">
+
+    <span bgcolor="#eeaa88">
+        <b>名稱</b>
+    </span>
+    <input type="hidden" name="name" size="28">
+
+    <br>
+    <b>E-mail</b>
+    <input type="text" name="email" size="28" title="overall type: EMAIL_ADDRESS
+    server type: EMAIL_ADDRESS
+    heuristic type: EMAIL_ADDRESS
+    field signature: 420638584
+    form signature: 8114880053301002168">
+    <input type="submit" value="送　出">
+
+    <br>
+    <b>題名</b>
+    <input type="hidden" name="sub" size="35"><b>內文</b>
+            <textarea name="comx5113" cols="48" rows="4" wrap="soft" title="overall type: UNKNOWN_TYPE
+    server type: NO_SERVER_DATA
+    heuristic type: UNKNOWN_TYPE
+    field signature: 456789781
+    form signature: 8114880053301002168"></textarea>
+
+    <br>
+    <b>附加圖檔</b>
+    <input type="file" name="upfile" size="35">
+    <label><input type="checkbox" name="textonly" value="on" title="overall type: UNKNOWN_TYPE
+    server type: NO_SERVER_DATA
+    heuristic type: UNKNOWN_TYPE
+    field signature: 1362469712
+    form signature: 8114880053301002168">無貼圖</label>
+
+    <br>
+    <b>刪除密碼</b>
+    <input type="password" name="pwd" size="8" maxlength="8" value="" title="overall type: PASSWORD
+    server type: PASSWORD
+    heuristic type: UNKNOWN_TYPE
+    field signature: 2597353482
+    form signature: 8114880053301002168">
+
+    <div id="recaptchaEle" data-sitekey="6LeuBPkSAAAAAJKaNezSYDM3ZL4-jfSJu9cWpp_-">
+
+    </div>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"
+            async defer>
+    </script>
+</form>
+</body>
+</html>

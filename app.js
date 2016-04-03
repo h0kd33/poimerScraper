@@ -9,7 +9,6 @@ var cors = require('cors');
 var index = require('./routes/index');
 var response = require('./routes/response');
 var users = require('./routes/users');
-var xpage = require('./routes/x');
 
 
 var app = express();
@@ -31,7 +30,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/response', response);
 app.use('/users', users);
-app.use('/x', xpage);
 app.use('/page/', index);
 
 

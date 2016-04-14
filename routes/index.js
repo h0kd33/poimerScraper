@@ -9,7 +9,8 @@ var scraper = require('../module/scraper');
 router.get('/', function (req, res, next) {
     console.log('Request page: ' + req.query.page);
     var targetHost = 'http://homu.komica.org/00/';
-    var targetUrl = req.query.page === 1 || req.query.page === undefined ? targetHost + 'index.htm' : targetHost + req.query.page + '.htm';
+    var targetUrl = req.query.page === '0' || req.query.page === undefined ? targetHost + 'index.htm': targetHost + req.query.page + '.htm';
+
     console.log(targetUrl);
     request(targetUrl, function (error, response, html) {
 

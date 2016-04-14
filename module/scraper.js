@@ -11,10 +11,28 @@ function scraper(html) {
         decodeEntities: false
     });
 
-// 本文
-    var mainContent = $('form hr');
+    /**
+     *  特殊
+     *  於hr~ form > * 的日期與ID是沒有 element 的 textnode
+     *  所以不會被 .children() 或 .prevUntil() 抓到
+     *  */
 
-// 自本文分割每篇文章(section)
+    // body > 的主文章純文字資訊
+    var textNodePart = $('body').clone().find('table').remove().end().text().match(/(\d{2}\/\d{2}\/\d{2}\(.\)\d{2}:\d{2}:\d{2}.*No\.\d+)/g);
+
+    var regex = {
+        time: /(\d{2}\/\d{2}\/\d{2}\(.\)\d{2}:\d{2}:\d{2})/,
+        id: /ID:([A-z\w\d\/\^\.]*\S)/g
+    };
+    var mainPostTimeArray = textNodePart.toString().match(regex.time);
+    var mainPostIDArray =  textNodePart.toString().match(regex.id);
+
+    /**
+     *  本文
+     * */
+    var mainContent = $('br[clear=left]+ hr');
+
+    // 自本文分割每篇文章(section)
     var sectionArray = [];
     mainContent.each(function (i, ele) {
         var $div = $('<section>');
@@ -26,12 +44,8 @@ function scraper(html) {
 
         sectionArray.push($div);
     });
-// 特殊
-// 於hr~ form底下的日期
-    var mainPostTimeArray = $('hr~ form').clone().children().remove().end().text().match(/(\d{2}\/\d{2}\/\d{2}\(.\)\d{2}:\d{2}:\d{2})/);
 
     $.root().empty().append(sectionArray);
-
 
     /**
      * 各區塊獨立取出資料
@@ -40,7 +54,6 @@ function scraper(html) {
     /**
      * TODO
      * - 未解決 JSON UTF-8 編碼問提
-     * - 未爬 [ 日期，標題，名稱 ]
      * */
 
 
@@ -52,6 +65,7 @@ function scraper(html) {
             text: section.children('blockquote').html(),
             title: section.children('font[color=#cc1105]').find('b').html(),
             name: section.children('font[color=#117743]').find('b').html(),
+            id: mainPostIDArray[i].replace('ID:',''),
             time: mainPostTimeArray[i],
             thumb: section.find('a[target=_blank] > img').attr('src'),
             image: section.children('a:has(img)').attr('href'),
@@ -67,7 +81,8 @@ function scraper(html) {
                     text: table.find('blockquote').html(),
                     title: table.find('font[color=#cc1105]').find('b').html(),
                     name: table.find('font[color=#117743]').find('b').html(),
-                    time: table.text().match(/(\d{2}\/\d{2}\/\d{2}\(.\)\d{2}:\d{2}:\d{2})/)[1],
+                    id: table.text().match(regex.id)[0].replace('ID:',''),
+                    time: table.text().match(regex.time)[0],
                     thumb: table.find('img').attr('src'),
                     image: table.find('a:has(img)').attr('href')
                 }

@@ -5,7 +5,6 @@ function scraper(html) {
     /**
      * 分割HTML
      * */
-
     var $ = cheerio.load(html, {
         normalizeWhitespace: false,
         xmlMode: false,
@@ -57,42 +56,35 @@ function scraper(html) {
      * - 未解決 JSON UTF-8 編碼問提
      * */
 
-
+    var packPromises = [];
     var pack = [];
     $('section').each(function (i, ele) {
-        var section = $(this);
-        var thumb = section.find('a[target=_blank] > img');
+        packPromises.push(new Promise(function (resolve, reject) {
+            var section = $(ele);
+            var thumb = section.find('a[target=_blank] > img');
 
-        // Request thumb data
-        var imageAspectRatio;
-        var thumbSrc = thumb.attr('src');
-        if (thumbSrc)
-        sizeOf( thumbSrc, function(err, dimensions, length) {
-            imageAspectRatio = dimensions.width / dimensions.height;
-            console.log(imageAspectRatio);
-        });
+            // Build Json Object
 
-        // Build Json Object
+            var promises = [];
+            var article = {
+                serial: section.children('input:checkbox').attr('name'),
+                text: section.children('blockquote').html(),
+                title: section.children('font[color=#cc1105]').find('b').html(),
+                name: section.children('font[color=#117743]').find('b').html(),
+                id: mainPostIDArray[i].replace('ID:',''),
+                time: mainPostTimeArray[i],
+                thumb: thumb.attr('src'),
+                image: section.children('a:has(img)').attr('href'),
+                responseCounts: section.children('font[color=#707070]').html(),
+                response: []
+            };
+            if (article.thumb) {
+                promises.push(sizeOfPromise(article));
+            }
 
-        var article = {
-            serial: section.children('input:checkbox').attr('name'),
-            text: section.children('blockquote').html(),
-            title: section.children('font[color=#cc1105]').find('b').html(),
-            name: section.children('font[color=#117743]').find('b').html(),
-            id: mainPostIDArray[i].replace('ID:',''),
-            time: mainPostTimeArray[i],
-            thumb: thumb.attr('src'),
-            image: section.children('a:has(img)').attr('href'),
-            imageAspectRatio: imageAspectRatio,
-            responseCounts: section.children('font[color=#707070]').html(),
-            response: []
-        };
-
-
-        section.children('table').each(function (i, ele) {
-            var table = $(this);
-            article.response.push(
-                {
+            section.children('table').each(function (i, ele) {
+                var table = $(this);
+                var post = {
                     serial: table.find('input:checkbox').attr('name'),
                     text: table.find('blockquote').html(),
                     title: table.find('font[color=#cc1105]').find('b').html(),
@@ -101,12 +93,39 @@ function scraper(html) {
                     time: table.text().match(regex.time)[0],
                     thumb: table.find('img').attr('src'),
                     image: table.find('a:has(img)').attr('href')
+                };
+                article.response.push(post);
+                if (post.thumb) {
+                    promises.push(sizeOfPromise(post));
                 }
-            );
-        });
-        pack.push(article);
+            });
+
+            pack.push(article);
+            return Promise.all(promises).then(() => {
+                return resolve();
+            });
+
+            function sizeOfPromise(post) {
+                return new Promise(function (resolve, reject) {
+                    sizeOf( {uri: post.thumb}, function(err, dimensions, length) {
+                        if (err) return reject(err);
+                        post.thumbDimensions = dimensions;
+                        resolve();
+                    });
+                });
+            }
+        }));
     });
-    return pack;
+
+    var resolver = Promise.resolve(packPromises[0]).then((r) => {
+        console.log(r);
+    });
+    packPromises.forEach(function (promise) {
+        resolver = resolver.then(promise);
+    });
+    return resolver.then(function () {
+        return pack;
+    });
 }
 
 module.exports = scraper;

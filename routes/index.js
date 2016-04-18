@@ -17,11 +17,10 @@ router.get('/', function (req, res, next) {
     request(targetUrl, function (error, response, html) {
 
         if (!error && response.statusCode == 200) {
-
-            var pack = scraper(html);
-            res.header("Content-Type", "application/json; charset=utf-8");
-            res.json(pack);
-
+            scraper(html).then(function (pack) {
+                res.header("Content-Type", "application/json; charset=utf-8");
+                res.json(pack);
+            });
         }
     });
 });

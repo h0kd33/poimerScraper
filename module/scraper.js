@@ -1,4 +1,5 @@
 var cheerio = require('cheerio');
+var sizeOf = require('request-image-size');
 
 function scraper(html) {
     /**
@@ -60,6 +61,19 @@ function scraper(html) {
     var pack = [];
     $('section').each(function (i, ele) {
         var section = $(this);
+        var thumb = section.find('a[target=_blank] > img');
+
+        // Request thumb data
+        var imageAspectRatio;
+        var thumbSrc = thumb.attr('src');
+        if (thumbSrc)
+        sizeOf( thumbSrc, function(err, dimensions, length) {
+            imageAspectRatio = dimensions.width / dimensions.height;
+            console.log(imageAspectRatio);
+        });
+
+        // Build Json Object
+
         var article = {
             serial: section.children('input:checkbox').attr('name'),
             text: section.children('blockquote').html(),
@@ -67,11 +81,13 @@ function scraper(html) {
             name: section.children('font[color=#117743]').find('b').html(),
             id: mainPostIDArray[i].replace('ID:',''),
             time: mainPostTimeArray[i],
-            thumb: section.find('a[target=_blank] > img').attr('src'),
+            thumb: thumb.attr('src'),
             image: section.children('a:has(img)').attr('href'),
+            imageAspectRatio: imageAspectRatio,
             responseCounts: section.children('font[color=#707070]').html(),
             response: []
         };
+
 
         section.children('table').each(function (i, ele) {
             var table = $(this);

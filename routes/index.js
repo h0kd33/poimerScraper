@@ -3,6 +3,8 @@ var router = express.Router();
 
 var request = require('request');
 var cheerio = require('cheerio');
+
+// user module
 var scraper = require('../module/scraper');
 
 /* GET home page. */

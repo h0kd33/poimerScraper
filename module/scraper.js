@@ -41,43 +41,51 @@ function scraper(html) {
     $('.thread').each(function (i, ele) {
         packPromises.push(new Promise(function (resolve, reject) {
             var section = $(ele);
-            var thumb = section.find('a[target=_blank] > img');
 
             // Build Json Object
-
+			
             var promises = [];
+			var article = [];
             var $threadpost = section.find('.post.threadpost');
-            var article = {
-                serial: $threadpost.find('.qlink').attr('data-no'),
-                text: $threadpost.find('.quote').text(),
-                title: $threadpost.find('.title').innerText,
-                id: $threadpost.find('.now').text().match(regex.id)[0],
-                time: $threadpost.find('.now').text().match(regex.time)[0],
-                thumb: thumb.attr('src'),
-                image: thumb.parent().attr('href'),
-                responseCounts: $threadpost.find(".warn_txt2").innerText,
+
+            var firstPost = {
+                serialNumber: $threadpost.find('.qlink').attr('data-no'),
+                content: $threadpost.find('.quote').text(),
+                title: $threadpost.find('.title').text(),
+                userId: $threadpost.find('.now').text().match(regex.id)[0].slice(3),
+                postTime: $threadpost.find('.now').text().match(regex.time)[0],
+                imgThumbnailUrl: $threadpost.find('.file-thumb img').attr('src'),
+                imgUrl: $threadpost.find('.file-thumb').attr('href'),
                 response: []
             };
-            if (article.thumb) {
-                promises.push(sizeOfPromise(article));
+			article.push(firstPost);
+
+            if (firstPost.imgThumbnailUrl) {
+				firstPost.imgThumbnailUrl = "http:" + firstPost.imgThumbnailUrl;
+                promises.push(sizeOfPromise(firstPost));
             }
 
             section.find('.post.reply').each(function (i, ele) {
                 var $post = $(this);
                 var post = {
-                    serial: $post.find('.qlink').attr('data-no'),
-                    text: $post.find('.quote').text(),
-                    id: $post.find('.now').text().match(regex.id)[0],
-                    time: $post.find('.now').text().match(regex.time)[0],
-                    thumb: $post.find('img').attr('src'),
-                    image: $post.find('img').parent().attr('href')
+                    serialNumber: $post.find('.qlink').attr('data-no'),
+                    content: $post.find('.quote').text(),
+                    userId: $post.find('.now').text().match(regex.id)[0].slice(3),
+                    postTime: $post.find('.now').text().match(regex.time)[0],
+                    imgThumbnailUrl: $post.find('.file-thumb img').attr('src'),
+                    imgUrl: $post.find('.file-thumb').attr('href')
                 };
-                article.response.push(post);
-                if (post.thumb) {
+                article.push(post);
+				
+                if (post.imgThumbnailUrl) {
+					post.imgThumbnailUrl = "http:" + post.imgThumbnailUrl;
                     promises.push(sizeOfPromise(post));
                 }
             });
-
+			
+			// 確認文章長度
+            article[0]['postLength'] = article.length;
+			
             pack.push(article);
             return Promise.all(promises).then(() => {
                 return resolve();
@@ -85,9 +93,11 @@ function scraper(html) {
 
             function sizeOfPromise(post) {
                 return new Promise(function (resolve, reject) {
-                    sizeOf( {uri: post.thumb}, function(err, dimensions, length) {
+                    sizeOf( {uri: post.imgThumbnailUrl}, function(err, dimensions, length) {
                         if (err) return reject(err);
-                        post.thumbDimensions = dimensions;
+                        post.imgThumbnailHeight = dimensions.height;
+                        post.imgThumbnailWidth = dimensions.width;
+                        post.mediaType = dimensions.type;
                         resolve();
                     });
                 });
